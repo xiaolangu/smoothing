@@ -34,6 +34,7 @@ if __name__ == "__main__":
     # prepare output file
     f = open(args.outfile, 'w')
     print("idx\tlabel\tpredict\tcorrect\ttime", file=f, flush=True)
+    print("idx\tlabel\tpredict\tcorrect\ttime", flush=True)
 
     # iterate through the dataset
     dataset = get_dataset(args.dataset, args.split)
@@ -59,5 +60,6 @@ if __name__ == "__main__":
 
         # log the prediction and whether it was correct
         print("{}\t{}\t{}\t{}\t{}".format(i, label, prediction, correct, time_elapsed), file=f, flush=True)
+        print("{}\t{}\t{}\t{}\t{}".format(i, label, prediction, correct, time_elapsed), flush=True)
 
     f.close()
