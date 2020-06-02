@@ -1,4 +1,4 @@
-""" This script loads a base classifier and then runs PREDICT on many examples from a dataset.
+""" This also outputs the score of prediction, defined by the portion of Monte Carlo samples that returns the predicted label
 """
 import argparse
 import setGPU
@@ -33,10 +33,12 @@ if __name__ == "__main__":
 
     # prepare output file
     f = open(args.outfile, 'w')
-    print("idx\tlabel\tpredict\tcorrect\ttime", file=f, flush=True)
+    
 
     # iterate through the dataset
     dataset = get_dataset(args.dataset, args.split)
+    print("idx\tlabel\tpredict\tcorrect\tscore\ttime", flush=True)
+    print("idx\tlabel\tpredict\tcorrect\tscore\ttime", file=f, flush=True)
     for i in range(len(dataset)):
 
         # only certify every args.skip examples, and stop after args.max examples
@@ -50,7 +52,7 @@ if __name__ == "__main__":
         before_time = time()
 
         # make the prediction
-        prediction = smoothed_classifier.predict(x, args.N, args.alpha, args.batch)
+        prediction,score = smoothed_classifier.predict_with_score(x, args.N, args.alpha, args.batch)
 
         after_time = time()
         correct = int(prediction == label)
@@ -58,6 +60,8 @@ if __name__ == "__main__":
         time_elapsed = str(datetime.timedelta(seconds=(after_time - before_time)))
 
         # log the prediction and whether it was correct
-        print("{}\t{}\t{}\t{}\t{}".format(i, label, prediction, correct, time_elapsed), file=f, flush=True)
+        print("{}\t{}\t{}\t{}\t{}\t{}".format(i, label, prediction, correct, score, time_elapsed), flush=True)
+        print("{}\t{}\t{}\t{}\t{}\t{}".format(i, label, prediction, correct, score, time_elapsed), file=f, flush=True)
 
     f.close()
+
