@@ -73,6 +73,30 @@ class Smooth(object):
         else:
             return top2[0]
 
+    def predict_with_score(self, x: torch.tensor, n: int, alpha: float, batch_size: int) -> int:
+        """ Monte Carlo algorithm for evaluating the prediction of g at x.  With probability at least 1 - alpha, the
+        class returned by this method will equal g(x).
+
+        This function uses the hypothesis test described in https://arxiv.org/abs/1610.03944
+        for identifying the top category of a multinomial distribution.
+
+        :param x: the input [channel x height x width]
+        :param n: the number of Monte Carlo samples to use
+        :param alpha: the failure probability
+        :param batch_size: batch size to use when evaluating the base classifier
+        :return: the predicted class, or ABSTAIN
+        """
+        self.base_classifier.eval()
+        counts = self._sample_noise(x, n, batch_size)
+        top2 = counts.argsort()[::-1][:2]
+        count1 = counts[top2[0]]
+        count2 = counts[top2[1]]
+        score = count1/np.sum(counts)
+        if binom_test(count1, count1 + count2, p=0.5) > alpha:
+            return Smooth.ABSTAIN, score
+        else:
+            return top2[0], score
+
     def _sample_noise(self, x: torch.tensor, num: int, batch_size) -> np.ndarray:
         """ Sample the base classifier's prediction under noisy corruptions of the input x.
 
